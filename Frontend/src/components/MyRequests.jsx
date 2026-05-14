@@ -1,0 +1,107 @@
+import { useState } from "react"
+import axios from "axios"
+
+const API = "http://localhost:5000"
+
+function MyRequests({ userId }) {
+  const [borrowerId, setBorrowerId] = useState(userId || "")
+  const [requests, setRequests] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [searched, setSearched] = useState(false)
+
+  const fetchRequests = async () => {
+    try {
+      setLoading(true)
+      const res = await axios.get(`${API}/my-requests/${borrowerId}`)
+      setRequests(res.data)
+      setSearched(true)
+      setLoading(false)
+    } catch (err) {
+      console.error(err)
+      setLoading(false)
+    }
+  }
+
+  const requestItem = async (itemId) => {
+    try {
+      await axios.post(`${API}/request-item`, {
+        item_id: itemId,
+        borrower_id: borrowerId
+      })
+      alert("Request sent! ✅")
+    } catch (err) {
+      alert("Something went wrong ❌")
+    }
+  }
+
+  return (
+    <div style={{ maxWidth: "700px" }}>
+      <h2 style={{ marginBottom: "1rem" }}>My Requests</h2>
+
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>
+        <input
+          placeholder="Enter your User ID"
+          value={borrowerId}
+          onChange={(e) => setBorrowerId(e.target.value)}
+          style={inputStyle}
+        />
+        <button onClick={fetchRequests} style={buttonStyle}>
+          View Requests
+        </button>
+      </div>
+
+      {loading && <p>Loading...</p>}
+
+      {searched && requests.length === 0 && (
+        <p style={{ color: "#666" }}>No requests found.</p>
+      )}
+
+      {requests.map(req => (
+        <div key={req.id} style={cardStyle}>
+          <h3>{req.title}</h3>
+          <p style={{ color: "#666", fontSize: "0.9rem" }}>{req.category}</p>
+          <p style={{ margin: "0.5rem 0" }}>
+            Status: <span style={{
+              fontWeight: "bold",
+              color: req.status === "approved" ? "green" :
+                     req.status === "rejected" ? "red" : "orange"
+            }}>
+              {req.status}
+            </span>
+          </p>
+          <p style={{ fontSize: "0.8rem", color: "#999" }}>
+            Requested on: {new Date(req.created_at).toLocaleDateString()}
+          </p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const inputStyle = {
+  padding: "0.7rem",
+  borderRadius: "6px",
+  border: "1px solid #ddd",
+  fontSize: "1rem",
+  flex: 1
+}
+
+const buttonStyle = {
+  padding: "0.7rem 1.2rem",
+  borderRadius: "6px",
+  background: "#4f46e5",
+  color: "white",
+  border: "none",
+  fontSize: "1rem",
+  cursor: "pointer"
+}
+
+const cardStyle = {
+  background: "white",
+  borderRadius: "8px",
+  padding: "1rem",
+  marginBottom: "1rem",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+}
+
+export default MyRequests
