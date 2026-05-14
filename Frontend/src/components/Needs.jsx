@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import API from "../api"
 
-const API = "http://localhost:5000"
 
 function Needs({ userId }) {
   const [needs, setNeeds] = useState([])

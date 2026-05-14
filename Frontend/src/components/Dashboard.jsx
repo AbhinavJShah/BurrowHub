@@ -1,7 +1,7 @@
 import { useState } from "react"
 import axios from "axios"
+import API from "../api"
 
-const API = "http://localhost:5000"
 
 function Dashboard({ userId }) {
   const [ownerId, setOwnerId] = useState(userId || "")

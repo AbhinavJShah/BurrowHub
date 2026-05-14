@@ -1,7 +1,6 @@
 import { useState } from "react"
 import axios from "axios"
-
-const API = "http://localhost:5000"
+import API from "../api"
 
 function AddItem({ userId }) {
   const [form, setForm] = useState({

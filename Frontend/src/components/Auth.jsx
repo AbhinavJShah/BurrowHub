@@ -1,6 +1,6 @@
 import { useState } from "react"
+import API from "../api"
 
-const API = "http://localhost:5000"
 
 function Auth({ onLogin }) {
   const [name, setName] = useState("")

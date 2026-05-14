@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
+import API from "../api"
 
-const API = "http://localhost:5000"
 
 function ItemsList({ userId }) {
   const [items, setItems] = useState([])
