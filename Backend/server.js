@@ -5,7 +5,7 @@ const pool = require("./db");
 
 const app = express();
 app.use(cors({
-  origin: ["http://localhost:5173", "https://your-vercel-app.vercel.app"],
+  origin: ["http://localhost:5173", "https://burrow-hub.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
@@ -17,8 +17,6 @@ app.get("/", (req, res) => {
 });
 
 // ─── USERS ────────────────────────────────────────────────
-
-// Create user
 app.post("/users", async (req, res) => {
   try {
     const { name, email } = req.body;
@@ -33,7 +31,6 @@ app.post("/users", async (req, res) => {
   }
 });
 
-// Get all users
 app.get("/users", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM users ORDER BY created_at DESC");
@@ -45,8 +42,6 @@ app.get("/users", async (req, res) => {
 });
 
 // ─── ITEMS ────────────────────────────────────────────────
-
-// Get all items
 app.get("/items", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM items ORDER BY created_at DESC");
@@ -57,7 +52,6 @@ app.get("/items", async (req, res) => {
   }
 });
 
-// Get items by owner
 app.get("/my-items/:owner_id", async (req, res) => {
   try {
     const { owner_id } = req.params;
@@ -72,7 +66,6 @@ app.get("/my-items/:owner_id", async (req, res) => {
   }
 });
 
-// Create item
 app.post("/items", async (req, res) => {
   try {
     const { owner_id, title, category, description } = req.body;
@@ -88,7 +81,6 @@ app.post("/items", async (req, res) => {
   }
 });
 
-// Delete item
 app.delete("/items/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -101,24 +93,18 @@ app.delete("/items/:id", async (req, res) => {
 });
 
 // ─── REQUESTS ─────────────────────────────────────────────
-
-// Create borrow request
 app.post("/request-item", async (req, res) => {
   try {
     const { item_id, borrower_id } = req.body;
-
-    // Check if request already exists
     const existing = await pool.query(
       `SELECT * FROM requests 
        WHERE item_id = $1 AND borrower_id = $2 
        AND status NOT IN ('rejected', 'returned')`,
       [item_id, borrower_id]
     );
-
     if (existing.rows.length > 0) {
       return res.status(400).json({ error: "You have already requested this item!" });
     }
-
     const result = await pool.query(
       `INSERT INTO requests (item_id, borrower_id) VALUES ($1, $2) RETURNING *`,
       [item_id, borrower_id]
@@ -130,7 +116,6 @@ app.post("/request-item", async (req, res) => {
   }
 });
 
-// View requests made by a borrower
 app.get("/my-requests/:borrower_id", async (req, res) => {
   try {
     const { borrower_id } = req.params;
@@ -149,7 +134,6 @@ app.get("/my-requests/:borrower_id", async (req, res) => {
   }
 });
 
-// View requests received by an owner
 app.get("/received-requests/:owner_id", async (req, res) => {
   try {
     const { owner_id } = req.params;
@@ -169,17 +153,14 @@ app.get("/received-requests/:owner_id", async (req, res) => {
   }
 });
 
-// Approve / Reject / Return a request
 app.put("/update-request/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-
     const allowed = ["pending", "approved", "rejected", "returned"];
     if (!allowed.includes(status)) {
       return res.status(400).json({ error: "Invalid status value" });
     }
-
     const result = await pool.query(
       `UPDATE requests SET status = $1 WHERE id = $2 RETURNING *`,
       [status, id]
@@ -190,17 +171,14 @@ app.put("/update-request/:id", async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
-// ─── NEEDS ────────────────────────────────────────────────
 
-// Post a need
+// ─── NEEDS ────────────────────────────────────────────────
 app.post("/needs", async (req, res) => {
   try {
     const { requester_id, title, description, days_needed } = req.body;
-
     if (!title || !days_needed) {
       return res.status(400).json({ error: "Title and days needed are required!" });
     }
-
     const result = await pool.query(
       `INSERT INTO needs (requester_id, title, description, days_needed)
        VALUES ($1, $2, $3, $4) RETURNING *`,
@@ -213,7 +191,6 @@ app.post("/needs", async (req, res) => {
   }
 });
 
-// Get all open needs
 app.get("/needs", async (req, res) => {
   try {
     const result = await pool.query(
@@ -230,7 +207,6 @@ app.get("/needs", async (req, res) => {
   }
 });
 
-// Get my needs
 app.get("/my-needs/:requester_id", async (req, res) => {
   try {
     const { requester_id } = req.params;
@@ -247,17 +223,14 @@ app.get("/my-needs/:requester_id", async (req, res) => {
   }
 });
 
-// Mark need as fulfilled
 app.put("/needs/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-
     const allowed = ["open", "fulfilled"];
     if (!allowed.includes(status)) {
       return res.status(400).json({ error: "Invalid status value" });
     }
-
     const result = await pool.query(
       `UPDATE needs SET status = $1 WHERE id = $2 RETURNING *`,
       [status, id]
